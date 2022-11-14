@@ -5,10 +5,11 @@ import cv2
 import math
 import numpy as np
 
+
 PI = 3.141592
 POSITION_Y = 151
 FRAME_WIDTH = 320
-# HSV Color Condigion (Yellow)
+# HSV Color Condition (Yellow)
 Y_H_LOW = 20
 Y_H_HIGH = 70
 Y_S_LOW = 60
@@ -43,11 +44,11 @@ W = 640
 camera = PiCamera()
 camera.resolution = (W, H)
 camera.framerate = 32
-rawCapture = PiRGBArray(camera, size=(W, H))
 
 time.sleep(0.1)
 
-image = cv2.imread("redcircle.jpg", 1)
+image = cv2.imread("snapshot_test.jpg", 1) #480X640X3
+print(image.shape)
 
 hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 gray_img = cv2.cvtColor(hsv_img, cv2.COLOR_BGR2GRAY)
@@ -57,8 +58,10 @@ sigmaSpace = 10.0
 filtered_img = cv2.bilateralFilter(gray_img, -1, sigmaColor, sigmaSpace)
 
 # 원 검출
-circles = cv2.HoughCircles(filtered_img, cv2.HOUGH_GRADIENT, 2, 30, 200, 50, 10, 50)
+circles = cv2.HoughCircles(filtered_img, cv2.HOUGH_GRADIENT, 1, 80,
+                                   param1=270, param2=28, minRadius=15, maxRadius=100)
 circles = circles[0]
+
 
 for i in range(len(circles)):
     print(circles[i][0]) # 각 원 순서대로 중심점 출력
@@ -71,6 +74,10 @@ for i in range(len(circles)):
 
     x = center[0]
     y = center[1]
+    #indexoutofrange 오류 해결
+    if(y==480 or x==640):
+        y=479
+        x=639
     print(f"x: {x}, y: {y}")
     B = image[y][x][0]
     G = image[y][x][1]
@@ -79,6 +86,7 @@ for i in range(len(circles)):
 
     if (R-B > 20 and R-G > 20 and R > 100):
         print("Red Light!! Stop!")
+        cv2.line(image, (x, y), (x, y), (255, 0, 0), 5) #빨간원으로 인식했을때 중점찍기
     elif (G-R > 20 and G-B > 20 and G > 100):
         print("Detected Green Light")
         CenterX = center[0]
@@ -89,6 +97,7 @@ for i in range(len(circles)):
         TotalPixel = math.floor(PI*Cradius*Cradius)
         green_cnt_r = 0
         green_cnt_l = 0
+        cv2.line(image, (x, y), (x, y), (0, 0, 255), 5)#초록원으로 인식했을때 중점찍기
 
         for k in range(CenterX-Cradius, CenterX+Cradius):
             for j in range(CenterY-Cradius, CenterY+Cradius):
@@ -107,3 +116,10 @@ for i in range(len(circles)):
 
     else: print("stay stop!")
 
+    cv2.circle(image, (x, y), radius, (255,0, 0), 5) #원그리기
+
+
+
+cv2.imshow('circle', image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
