@@ -5,6 +5,7 @@ import cv2
 import math
 import numpy as np
 
+
 PI = 3.141592
 POSITION_Y = 151
 FRAME_WIDTH = 320
@@ -65,7 +66,8 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     filtered_img = cv2.bilateralFilter(gray_img, -1, sigmaColor, sigmaSpace)
 
     # 원 검출
-    circles = cv2.HoughCircles(filtered_img, cv2.HOUGH_GRADIENT, 2, 30, 200, 50, 10, 50)
+    circles = cv2.HoughCircles(filtered_img, cv2.HOUGH_GRADIENT, 1, 80,
+                               param1=70, param2=28, minRadius=15, maxRadius=100)
     circles = circles[0]
 
     for i in range(len(circles)):
@@ -79,6 +81,10 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
 
         x = center[0]
         y = center[1]
+        # indexoutofrange 오류 해결
+        if (y == 480 or x == 640):
+            y = 479
+            x = 639
         print(f"x: {x}, y: {y}")
         B = image[y][x][0]
         G = image[y][x][1]
