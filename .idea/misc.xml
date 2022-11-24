@@ -1,8 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-<<<<<<< HEAD
   <component name="ProjectRootManager" version="2" project-jdk-name="Remote Python 3.9.2 (/home/pi/emb/bin/python3) (2)" project-jdk-type="Python SDK" />
-=======
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10" project-jdk-type="Python SDK" />
->>>>>>> 5ff9eca31cdece356f1b4522ba142f13b6648e3c
 </project>
