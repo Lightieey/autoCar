@@ -113,13 +113,15 @@ def find_point(img, lines):
     # y_mid_point = 480
     y_mid_point = (lines[0][1]+lines[1][1])/2
 
+
+    # 중점과 직선 사이의 거리로 -> 안하기로 함
     # x1 y1  x1 y1
     #   |       |
     # x2 y2  x2 y2
 
-    c1 = ((lines[0][0] + lines[0][2])/2, (lines[0][1] + lines[0][3])/2)
-    c2 = ((lines[1][0] + lines[1][2]) / 2, (lines[1][1] + lines[1][3]) / 2)
-    cc = ((c1[0]+c2[0])/2, (c1[1]+c2[1])/2)
+    # c1 = ((lines[0][0] + lines[0][2])/2, (lines[0][1] + lines[0][3])/2)
+    # c2 = ((lines[1][0] + lines[1][2]) / 2, (lines[1][1] + lines[1][3]) / 2)
+    # cc = ((c1[0]+c2[0])/2, (c1[1]+c2[1])/2)
 
     cl = lines[0][1] - m[0] * lines[0][0]
     cr = lines[1][1] - m[1] * lines[1][0]
