@@ -20,34 +20,43 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     # 창 따로 뜨는지 확인
     try:
         slope, lined_frame = line_detection(frame)
+
+        out = cv2.VideoWriter()
+
         signal = light_detection(lined_frame)
         print(signal)
 
-        # 모터 제어
+        # 모터 제어--
         car = YB_Pcb_Car.YB_Pcb_Car()
 
-        if (slope < 0 and slope > -10):
-            car.Car_Run(30 + abs(math.ceil(slope))*3, 30 - abs(math.ceil(slope))*3)
-            print("2) slope:", slope, "left:", 30 + abs(math.ceil(slope))*3, "right:", 30 - abs(math.ceil(slope))*3)
-        elif (slope > 0 and slope < 10):
-            car.Car_Run(30 - abs(math.ceil(slope))*3, 30 + abs(math.ceil(slope))*3)
-            print("3) slope:", slope, "left:", 30 - abs(math.ceil(slope))*3, "right:", 30 + abs(math.ceil(slope))*3)
-        else:
-            car.Car_Run(30, 30)
-            print("1) slope: ", slope)
+        car.Car_Run(int(30 + slope*10), int(30 - slope*10))
+        # if (slope < 0 and slope > -10):
+        #     car.Car_Run(30 + abs(math.ceil(slope))*3, 30 - abs(math.ceil(slope))*3)
+        #     print("2) slope:", slope, "left:", 30 + abs(math.ceil(slope))*3, "right:", 30 - abs(math.ceil(slope))*3)
+        # elif (slope > 0 and slope < 10):
+        #     car.Car_Run(30 - abs(math.ceil(slope))*3, 30 + abs(math.ceil(slope))*3)
+        #     print("3) slope:", slope, "left:", 30 - abs(math.ceil(slope))*3, "right:", 30 + abs(math.ceil(slope))*3)
+        # else:
+        #     car.Car_Run(30, 30)
+        #     print("1) slope: ", slope)
         time.sleep(0.1)
 
-        car.Car_Stop()
-        cv2.waitKey(0)
-
-    # except Exception as e:
-    #     print(e)
         # car.Car_Stop()
+        # cv2.waitKey(0)
+
+    except Exception as e:
+        print(e)
+        car.Car_Stop()
+        break
     except KeyboardInterrupt:
         car.Car_Stop()
+        cv2.destroyAllWindows()
+        break
     finally:
         key = cv2.waitKey(1) & 0xFF
         rawCapture.truncate(0)
+
+
 
 
 

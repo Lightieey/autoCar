@@ -4,6 +4,7 @@ import picamera
 import time
 import cv2
 import numpy as np
+import pandas as pd
 
 global slopes
 slopes = []
@@ -195,8 +196,8 @@ def line_detection(frame):
     image_with_vanishpoint_line = display_lines(image_with_smooth_lines, vanishpoint_line)
 
 
-    cv2.imshow("Output", image_with_vanishpoint_line)
-    cv2.waitKey(0)
+    # cv2.imshow("Output", image_with_vanishpoint_line)
+    # cv2.waitKey(0)
 
     return slope, image_with_vanishpoint_line
 
@@ -222,9 +223,13 @@ if __name__ == '__main__':
     for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         try:
             line_detection(frame)
-
         # except Exception as e:
         #     print(e)
+        except KeyboardInterrupt:
+            df = pd.DataFrame(slopes)
+            df.to_csv("slopes.csv", mode='w')
+            break
+
         finally:
             key = cv2.waitKey(1) & 0xFF
             rawCapture.truncate(0)
