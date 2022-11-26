@@ -25,8 +25,8 @@ def light_detection(frame):
     #image = frame.array
     image = frame
 
-    roi_image = get_roi(image, 520, 300, 70, 0, 640, 0, 640, 480)  # roi 설정
-
+    roi_image = get_roi(image, 100, 150, 100, 0, 540, 0, 540, 150)  # roi 설정
+    cv2.rectangle(image, (100, 150), (540, 0), color=(0, 0, 255))
     # 영상 블러, 에지 부각
     # hsv_img = np.zeros((H, W), image.dtype)
     # gray_img = np.zeros((H, W), image.dtype)
@@ -41,7 +41,7 @@ def light_detection(frame):
 
     # 원 검출
     circles = cv2.HoughCircles(filtered_img, cv2.HOUGH_GRADIENT, 5, 100,
-                               param1=50, param2=300, minRadius= 50, maxRadius=60)
+                               param1=50, param2=300, minRadius= 30, maxRadius=50)
 
     result = "Not found"
     if (circles is not None):

@@ -234,4 +234,3 @@ if __name__ == '__main__':
             key = cv2.waitKey(1) & 0xFF
             rawCapture.truncate(0)
 
-
