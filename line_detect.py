@@ -62,18 +62,8 @@ def get_linecoordinates_from_parameters(img, line_parameters):
     y2 = float(y1 * (3.4 / 5))  # some random point at 3/5
     x1 = float((y1 - intercept) / slope)
     x2 = float((y2 - intercept) / slope)
-
-    if (x1 < 0):
-        y1 = intercept
-    if (x2 >= 640):
-        y2 = 639 * slope + intercept
     return np.array([x1, y1, x2, y2])
 
-def swap_coords(x1, y1, x2, y2):
-    # swap coords
-    x1, y1 = y1, x1
-    x2, y2 = y2, x2
-    return x1, y1, x2, y2
 
 def get_smooth_lines(img, lines):
     left_fit = []  # will hold m,c parameters for left side lines
@@ -81,10 +71,8 @@ def get_smooth_lines(img, lines):
 
     for line in lines:
         x1, y1, x2, y2 = line.reshape(4)
-
         # numpy.polyfit(x좌표들, y좌표들, 방정식의 차수, rcond=None, full=False, w=None, cov=False)
         parameters = np.polyfit((x1, x2), (y1, y2), 1)
-
         # 기울기
         slope = parameters[0]
         # y절편
@@ -92,20 +80,22 @@ def get_smooth_lines(img, lines):
 
         # 기울기가 음수면 왼쪽 차선, 양수면 오른쪽 차선
         if slope < 0:
-            left_fit.append([slope, intercept])
+            left_fit.append([x1, y1, x2, y2])
+            # left_fit.append([slope, intercept])
         else:
-            right_fit.append([slope, intercept])
+            right_fit.append([x1, y1, x2, y2])
+            # right_fit.append([slope, intercept])
 
     # 직선들의 평균을 찾아 하나의 직선으로 만들기 # 이것 말고도 중점에 가까운 직선을 구하는 방법도 있음. 뭐가 더 좋을지는 주행 해봐야 알 것 같다.
     # axis=0으로 지정하면 row를 기준으로 연산 / axis=1으로 지정하면 column을 기준으로 연산
     if (len(left_fit) == 0):
         right_fit_average = np.average(right_fit, axis=0)
-        right_line = get_linecoordinates_from_parameters(img, right_fit_average)
-        return list(right_line)
+        # right_line = get_linecoordinates_from_parameters(img, right_fit_average)
+        return list(right_fit_average)
     elif (len(right_fit) == 0):
         left_fit_average = np.average(left_fit, axis=0)
-        left_line = get_linecoordinates_from_parameters(img, left_fit_average)
-        return list(left_line)
+        # left_line = get_linecoordinates_from_parameters(img, left_fit_average)
+        return list(left_fit_average)
         # 모터 제어 - 그냥 후진
 
 
@@ -114,23 +104,19 @@ def get_smooth_lines(img, lines):
 
     # now we have got m,c parameters for left and right line, we need to know x1,y1 x2,y2 parameters
     # 선분으로 그려주기 위해 좌표 찾기
-    left_line = get_linecoordinates_from_parameters(img, left_fit_average)
-    right_line = get_linecoordinates_from_parameters(img, right_fit_average)
+    # left_line = get_linecoordinates_from_parameters(img, left_fit_average)
+    # right_line = get_linecoordinates_from_parameters(img, right_fit_average)
     print("left, right")
-    print(np.array([left_line, right_line]))
-    return np.array([left_line, right_line])
+    print(np.array([left_fit_average, right_fit_average]))
+    return np.array([left_fit_average, right_fit_average])
 
 
 
 # 소실점 구하기
 def find_point(img, lines):
     if (type(lines) is list):
-        # 왼쪽 | 오른쪽 중 하나만 들어왔을 때
         print("1 line detected: ", lines)
-        parameters = np.polyfit((lines[0], lines[1]), (lines[2], lines[3]), 1)
-        print("slope: ", parameters[0])
-        return np.array([[0, 0, 0, 0]]), parameters[0]
-
+        return np.array([[0, 0, 0, 0]]), lines[0][0]
     m = np.array([(lines[0][3]-lines[0][1])/(lines[0][2]-lines[0][0]), (lines[1][3]-lines[1][1])/(lines[1][2]-lines[1][0])])# 왼쪽 기울기, 오른쪽 기울기
     # lines = (L[x1, y1, x2, y2] , R[x1,y1,x2,y2])
 
@@ -148,12 +134,9 @@ def find_point(img, lines):
     y_vanish = m[0] * x_vanish + cl
 
     parameters = np.polyfit((x_vanish, x_mid_point), (y_vanish, y_mid_point), 1)
-    parameters_swap = np.polyfit((y_vanish, y_mid_point), (x_vanish, x_mid_point), 1)
     slope = parameters[0]
-
-    print("slope: ", parameters_swap[0])
-    slopes.append(parameters_swap[0])
-
+    print("slope: ", slope)
+    slopes.append(slope)
     intercept = parameters[1]
     # m : slope, c : intercept
     # y = mx + c , x = (y-c)/m
@@ -162,19 +145,13 @@ def find_point(img, lines):
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
 
-    if (x1 < 0):
-        y1 = intercept
-    if (x2 >= 640):
-        y2 = 639 * slope + intercept
-
-    return np.array([[x1, y1, x2, y2]]), parameters_swap[0]
+    return np.array([[x1, y1, x2, y2]]), slope
 
 
 def line_detection(frame):
     image = frame.array
     edged_image = canny_edge(image)
-    roi_image = get_roi(edged_image, 0, 480, 0, 300, 640, 300, 640, 480)
-    cv2.rectangle(image, (0, 480), (640, 300), color=(0, 0, 255))
+    roi_image = get_roi(edged_image, 0, 480, 120, 300, 520, 300, 640, 480)
 
 
     lines = get_lines(roi_image)
@@ -193,7 +170,6 @@ def line_detection(frame):
 
     vanishpoint_line, slope = find_point(image, smooth_lines)
     image_with_vanishpoint_line = display_lines(image_with_smooth_lines, vanishpoint_line)
-
 
     cv2.imshow("Output", image_with_vanishpoint_line)
     cv2.waitKey(0)
@@ -228,4 +204,5 @@ if __name__ == '__main__':
         finally:
             key = cv2.waitKey(1) & 0xFF
             rawCapture.truncate(0)
+
 
