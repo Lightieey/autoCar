@@ -41,9 +41,12 @@ def get_lines(img):
 # display lines over a image
 def display_lines(img, lines):
     if lines is not None:
+        if (type(lines) is list):
+            print("lines is list")
+            lines = np.array([[lines]])
         for line in lines:
+            print("line: ", line)
             # print(line) --output like [[704 418 927 641]] this is 2d array representing [[x1,y1,x2,y2]] for each line
-            print(line)
             x1, y1, x2, y2 = line.reshape(4)  # converting to 1d array []
             # draw line over image --(255,0,0) tells we want to draw blue line (b,g,r) values 10 is line thickness
             cv2.line(img, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 10)
@@ -55,7 +58,7 @@ def get_linecoordinates_from_parameters(img, line_parameters):
     intercept = line_parameters[1]
     # m : 기울기, c : y절편
     # y = mx + c , x = (y-c)/m
-    y1 = img.shape[0]  # since line will always start from bottom of image
+    y1 = img.shape[0]   # since line will always start from bottom of image
     y2 = float(y1 * (3.4 / 5))  # some random point at 3/5
     x1 = float((y1 - intercept) / slope)
     x2 = float((y2 - intercept) / slope)
@@ -76,17 +79,23 @@ def get_smooth_lines(img, lines):
         intercept = parameters[1]
 
         # 기울기가 음수면 왼쪽 차선, 양수면 오른쪽 차선
-        if slope < -1:
-            left_fit.append([slope, intercept])
-        elif slope > 1:
-            right_fit.append([slope, intercept])
-        # else:
-        #     return "stop"
+        if slope < 0:
+            left_fit.append([x1, y1, x2, y2])
+            # left_fit.append([slope, intercept])
+        else:
+            right_fit.append([x1, y1, x2, y2])
+            # right_fit.append([slope, intercept])
 
     # 직선들의 평균을 찾아 하나의 직선으로 만들기 # 이것 말고도 중점에 가까운 직선을 구하는 방법도 있음. 뭐가 더 좋을지는 주행 해봐야 알 것 같다.
     # axis=0으로 지정하면 row를 기준으로 연산 / axis=1으로 지정하면 column을 기준으로 연산
-    if (len(left_fit) == 0 or len(right_fit) == 0):
-        pass
+    if (len(left_fit) == 0):
+        right_fit_average = np.average(right_fit, axis=0)
+        # right_line = get_linecoordinates_from_parameters(img, right_fit_average)
+        return list(right_fit_average)
+    elif (len(right_fit) == 0):
+        left_fit_average = np.average(left_fit, axis=0)
+        # left_line = get_linecoordinates_from_parameters(img, left_fit_average)
+        return list(left_fit_average)
         # 모터 제어 - 그냥 후진
 
 
@@ -95,16 +104,19 @@ def get_smooth_lines(img, lines):
 
     # now we have got m,c parameters for left and right line, we need to know x1,y1 x2,y2 parameters
     # 선분으로 그려주기 위해 좌표 찾기
-    left_line = get_linecoordinates_from_parameters(img, left_fit_average)
-    right_line = get_linecoordinates_from_parameters(img, right_fit_average)
+    # left_line = get_linecoordinates_from_parameters(img, left_fit_average)
+    # right_line = get_linecoordinates_from_parameters(img, right_fit_average)
     print("left, right")
-    print(np.array([left_line, right_line]))
-    return np.array([left_line, right_line])
+    print(np.array([left_fit_average, right_fit_average]))
+    return np.array([left_fit_average, right_fit_average])
 
 
 
 # 소실점 구하기
 def find_point(img, lines):
+    if (type(lines) is list):
+        print("1 line detected: ", lines)
+        return np.array([[0, 0, 0, 0]]), lines[0][0]
     m = np.array([(lines[0][3]-lines[0][1])/(lines[0][2]-lines[0][0]), (lines[1][3]-lines[1][1])/(lines[1][2]-lines[1][0])])# 왼쪽 기울기, 오른쪽 기울기
     # lines = (L[x1, y1, x2, y2] , R[x1,y1,x2,y2])
 
@@ -112,16 +124,6 @@ def find_point(img, lines):
     x_mid_point = (lines[0][0]+lines[1][0])/2   # (left line, right line의 중점, 480)
     # y_mid_point = 480
     y_mid_point = (lines[0][1]+lines[1][1])/2
-
-
-    # 중점과 직선 사이의 거리로 -> 안하기로 함
-    # x1 y1  x1 y1
-    #   |       |
-    # x2 y2  x2 y2
-
-    # c1 = ((lines[0][0] + lines[0][2])/2, (lines[0][1] + lines[0][3])/2)
-    # c2 = ((lines[1][0] + lines[1][2]) / 2, (lines[1][1] + lines[1][3]) / 2)
-    # cc = ((c1[0]+c2[0])/2, (c1[1]+c2[1])/2)
 
     cl = lines[0][1] - m[0] * lines[0][0]
     cr = lines[1][1] - m[1] * lines[1][0]
@@ -156,7 +158,7 @@ def line_detection(frame):
     # for i in lines:
     #
     #     cv2.line(image, (i[0][0], i[0][1]), (i[0][2], i[0][3]), (0, 0, 255), 2)
-    #
+
     # cv2.imshow("Output", image)
     # cv2.waitKey(0)
 
@@ -170,6 +172,7 @@ def line_detection(frame):
     image_with_vanishpoint_line = display_lines(image_with_smooth_lines, vanishpoint_line)
 
     cv2.imshow("Output", image_with_vanishpoint_line)
+    cv2.waitKey(0)
 
     return slope, image_with_vanishpoint_line
 
@@ -196,8 +199,8 @@ if __name__ == '__main__':
         try:
             line_detection(frame)
 
-        except Exception as e:
-            print(e)
+        # except Exception as e:
+        #     print(e)
         finally:
             key = cv2.waitKey(1) & 0xFF
             rawCapture.truncate(0)
