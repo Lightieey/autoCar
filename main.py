@@ -14,14 +14,21 @@ camera.resolution = (640, 480)
 camera.framerate = 32   # 높여서 안끊기게 해보기 -> 연산처리 속도 보기
 rawCapture = PiRGBArray(camera, size=(640, 480))
 
-time.sleep(0.1)     # warm up
+time.sleep(0.1)   # warm up
 
+# 영상 저장ㅎ
+# fourcc = cv2.VideoWriter_fourcc('A', 'V', 'C', '1')
+# out = cv2.VideoWriter('output.avi', fourcc, 1.0, (640, 480))
+
+num = 0
 for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
     # 창 따로 뜨는지 확인
     try:
         slope, lined_frame = line_detection(frame)
 
-        out = cv2.VideoWriter()
+        num += 1
+        filename = f"frame{num}.jpg"
+        cv2.imwrite(filename, lined_frame)
 
         signal = light_detection(lined_frame)
         print(signal)
@@ -47,10 +54,12 @@ for frame in camera.capture_continuous(rawCapture, format="bgr", use_video_port=
     except Exception as e:
         print(e)
         car.Car_Stop()
+        # out.release()
         break
     except KeyboardInterrupt:
         car.Car_Stop()
-        cv2.destroyAllWindows()
+        # cv2.destroyAllWindows()
+        # out.release()
         break
     finally:
         key = cv2.waitKey(1) & 0xFF

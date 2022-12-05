@@ -67,7 +67,7 @@ def get_linecoordinates_from_parameters(img, line_parameters):
     if (x1 < 0):
         y1 = intercept
     if (x2 >= 640):
-        y2 = 639 * slope + intercept
+        y2 = 640 * slope + intercept
     return np.array([x1, y1, x2, y2])
 
 def swap_coords(x1, y1, x2, y2):
@@ -166,22 +166,24 @@ def find_point(img, lines):
     if (x1 < 0):
         y1 = intercept
     if (x2 >= 640):
-        y2 = 639 * slope + intercept
+        y2 = 640 * slope + intercept
 
     return np.array([[x1, y1, x2, y2]]), parameters_swap[0]
 
 
 def line_detection(frame):
+    print(type(frame))
     image = frame.array
+    print(type(image))
     edged_image = canny_edge(image)
-    roi_image = get_roi(edged_image, 0, 480, 0, 300, 640, 300, 640, 480)
-    cv2.rectangle(image, (0, 480), (640, 300), color=(0, 0, 255))
+    roi_image = get_roi(edged_image, 0, 479, 0, 300, 635, 300, 635, 479)
+    cv2.rectangle(image, (0, 479), (635, 300), color=(0, 0, 255))
 
 
     lines = get_lines(roi_image)
-    # for i in lines:
-    #
-    #     cv2.line(image, (i[0][0], i[0][1]), (i[0][2], i[0][3]), (0, 0, 255), 2)
+    for i in lines:
+
+        cv2.line(image, (i[0][0], i[0][1]), (i[0][2], i[0][3]), (0, 0, 255), 2)
 
     # cv2.imshow("Output", image)
     # cv2.waitKey(0)
@@ -196,8 +198,8 @@ def line_detection(frame):
     image_with_vanishpoint_line = display_lines(image_with_smooth_lines, vanishpoint_line)
 
 
-    # cv2.imshow("Output", image_with_vanishpoint_line)
-    # cv2.waitKey(0)
+    cv2.imshow("Output", image_with_vanishpoint_line)
+    cv2.waitKey(0)
 
     return slope, image_with_vanishpoint_line
 
