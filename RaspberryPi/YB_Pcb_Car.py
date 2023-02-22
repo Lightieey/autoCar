@@ -37,12 +37,13 @@ class YB_Pcb_Car(object):
 
     def Ctrl_Car(self, l_dir, l_speed, r_dir, r_speed):
         try:
-            print("Ctrl Car")
+            # print("Ctrl Car")
             reg = 0x01
             data = [l_dir, l_speed, r_dir, r_speed]
             self.write_array(reg, data)
         except:
             print ('Ctrl_Car I2C error')
+            # self.Car_Stop()
             
     def Control_Car(self, speed1, speed2):
         try:

@@ -83,3 +83,7 @@ fabric.properties
 .idea/pythonProject2.iml
 .idea/worksapce.xml
 .idea/
+
+# yolo
+./PC/yolov3_testing.cfg
+./PC/yolov3_training_last.weights
