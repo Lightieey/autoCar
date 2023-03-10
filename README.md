@@ -6,6 +6,7 @@ Sensor Programming 2022-2 Team Project
 - Raspberry Pi 4
 - python3
 - OpenCV3
+- YOLOv3
 <br><br>
 
 ## Description
