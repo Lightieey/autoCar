@@ -2,7 +2,7 @@
 Sensor Programming 2022-2 Team Project
 <br><br>
 
-## Environment
+## Tech Stack
 - Raspberry Pi 4
 - python3
 - OpenCV3
